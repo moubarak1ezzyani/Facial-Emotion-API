@@ -1,5 +1,5 @@
 from typing import Union, Annotated
-from fastapi import FastAPI, File, UploadFile, Depends
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
 import tensorflow as tf
 import numpy as np
 from tensorflow import keras 
@@ -19,7 +19,7 @@ import datetime
 app = FastAPI()
 
 # Config Engine
-# --- URL : postgresql+asyncpg://<utilisateur>:<motdepasse>@<hote>:<port>/<nom_de_la_bd> ==> <> : à éliminer
+# --- URL : postgresql+asyncpg://<utilisateur>:<motdepasse>@<hote>:<port>/<nom_de_la_bd> ==> "<>" : à éliminer
 
 load_dotenv()   # searching : file (.env) & secrets
 
@@ -34,7 +34,7 @@ if not all([DB_USER, DB_PASS, DB_HOST, DB_NAME]):
 
 DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 
-
+# SQLAlchemy (au demarrage): Alembic (the best)
 # --- create engine / moteur
 engine = create_async_engine(DB_URL, echo = True)  # True : logs SQL
 
@@ -44,17 +44,20 @@ async_session_factory = sessionmaker(
 )
 Base = declarative_base()
 
-# SQLAlchemy (au demarrage): Alembic (the best)
 class PredictionHistory(Base):
     __tablename__ = "EmotionTable"
     id = Column(Integer, primary_key = True,index = True )
-    timestamp = Column(
+    """ timestamp = Column(
         DateTime(timezone=True), 
-        server_default = func.now())
+        server_default = func.now()) """
     
     filename = Column(String, index = True)
     emotion = Column(String)
     score = Column(Float)
+# --- Création des tables (async)
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # Dependance FastAPI - Gerer la connexion
 async def get_db_session() -> AsyncSession:
@@ -68,7 +71,7 @@ async def get_db_session() -> AsyncSession:
             await session.close()
 
 # --- load model CNN in memory 
-model = tf.keras.models.load_model('src/my_model_emotion_detection.keras')
+model = tf.keras.models.load_model('my_model_emotion_detection.keras')
 # tf_enable_onednn_opts=0
 # TF_ENABLE_ONEDNN_OPTS = 0
 
@@ -83,10 +86,10 @@ class_names = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surp
 async def read_root():
     return {"Hello" : "World"}
 
-@app.get('/item/{item_id}')
+"""@app.get('/item/{item_id}')
 async def read_item(item_id : int, q : Union[str, None] = None):
     return {"item_id" : item_id, "q" : q}   
-    
+"""
 @app.post('/predict_emotion/')
 async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depends(get_db_session)):
     if not file:
@@ -94,16 +97,23 @@ async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depe
     else:
         file_name = {'filename' : file.filename}
         print(file_name)
-        contents = await file.read()    # lire les bytes : contenu du fichier
+        contents = await file.read()    # lire les bytes : contenu du fichier | await : (tjrs avec func async)
 
         # --- NumPy + OpenCV ==> image
         np_arr = np.frombuffer(contents, np.uint8)   # tampon de lecture | u, int, 8 : unsigned, int, 8 bits --> 2^8 = 256 combinaisons (tab 1D)
         image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)    # 0 (noir/ pas de couleurs) --> 255 (blanc) | imdecode() / imread()
 
+        # --- Exception : Seules (.jpg) ou (.png) qui seront supportees
+        if image is None:
+            raise HTTPException(
+                status_code=400,    # bad request
+                detail=f"Utilisez JPG ou PNG '{file.filename.split('.')[-1]}' n'est pas supporté."
+            )
+
         # Detection Visage 
         # --- Haar Cascade : image --> niveaux de gris
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+  
         faces = face_cascade.detectMultiScale(gray_image, 1.1, 5) # Lancement Detecteur | 1.1, 5: reduction 10%, 5 confirmations de MinNeighbors
 
         if len(faces) == 0:
@@ -111,7 +121,7 @@ async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depe
         
         # Preparation Visage --> CNN
         # --- Crop / Recadrer
-        (x, y, w, h) = faces[0]
+        (x, y, w, h) = faces[0]      # 1er visage trouve (meme pour 3 visages )
         face_roi = gray_image[y:y+h, x:x+w]
 
         # --- Redimensionner
@@ -126,7 +136,7 @@ async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depe
         
         # --- Extraction de donnees 
         score =  float(np.max(prediction))
-        emotion_index = int(np.argmax(prediction))
+        emotion_index = int(np.argmax(prediction))                  
         emotion_label = class_names[emotion_index]
 
         # => Retour DB :
@@ -142,6 +152,6 @@ async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depe
 
         await db.refresh(nouvelle_prediction)    # avoir l'ID créé
 
-        # -- json File
+        # --- json File
         return {"emotion" : emotion_label, "score" : score, "saved_id" : nouvelle_prediction.id}
     
