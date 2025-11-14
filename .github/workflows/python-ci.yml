@@ -1,0 +1,34 @@
+name: Tests Python      # Nom du workflow (visble sur GitHub)
+
+
+# Déclencheur : chaque fois 'push' --> 'main'
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest      # Utilise une machine Linux (standard et rapide)
+    steps:
+      # --- Recuperer le code depuis GitHub
+      - uses: actions/checkout@v4
+
+      - name: Installer Python 3.11     # version Python (changeable)
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # --- Installer les bib de requirements
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      # --- Lancer les tests
+      - name: Lancer Pytest
+        env:
+          # les valeurs donnees sont fausses, pour que main ne plante pas
+          DB_USER: "test_user"
+          DB_PASS: "test_pass"
+          DB_HOST: "localhost"
+          DB_NAME: "test_db"
+        run: |
+          pytest
