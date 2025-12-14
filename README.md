@@ -1,7 +1,3 @@
-Voici une proposition de README.md de niveau professionnel, qui reste claire et précise pour un développeur ayant des bases.
-
------
-
 # Détection d’Émotions Faciales (CNN + FastAPI + PostgreSQL)
 
 ## 1\. Vue d'ensemble du Projet
