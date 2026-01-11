@@ -54,6 +54,7 @@ class PredictionHistory(Base):
     filename = Column(String, index = True)
     emotion = Column(String)
     score = Column(Float)
+
 # --- Création des tables (async)
 async def init_models():
     async with engine.begin() as conn:
@@ -76,7 +77,7 @@ model = tf.keras.models.load_model('my_model_emotion_detection.keras')
 # TF_ENABLE_ONEDNN_OPTS = 0
 
 # --- load model Haar Cascade
-name_xml_file = 'src/haarcascade-frontalface-default.xml'
+name_xml_file = 'haarcascade-frontalface-default.xml'
 face_cascade = cv2.CascadeClassifier(name_xml_file)
 
 # --- Class Names
@@ -113,7 +114,7 @@ async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depe
         # Detection Visage 
         # --- Haar Cascade : image --> niveaux de gris
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  
+        print(gray_image)
         faces = face_cascade.detectMultiScale(gray_image, 1.1, 5) # Lancement Detecteur | 1.1, 5: reduction 10%, 5 confirmations de MinNeighbors
 
         if len(faces) == 0:
