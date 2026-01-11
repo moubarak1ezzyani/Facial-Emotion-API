@@ -21,6 +21,7 @@ Le pipeline de traitement suit ces étapes rigoureuses :
 ## 📂 Structure du Projet
 
 ```bash
+src
 ├── create_tables.py                     # Script d'initialisation de la base de données (SQLAlchemy)
 ├── DetectFaces.py                       # Script autonome pour tester la détection (OpenCV + CNN)
 ├── haarcascade-frontalface-default.xml  # Modèle OpenCV pour la détection de visages
