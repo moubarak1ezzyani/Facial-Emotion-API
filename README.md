@@ -1,4 +1,4 @@
-# Détection d’Émotions Faciales (CNN + FastAPI + PostgreSQL)
+# Facial Emotion API
 
 ## 1\. Vue d'ensemble du Projet
 
