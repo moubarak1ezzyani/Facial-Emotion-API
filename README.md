@@ -21,15 +21,29 @@ Le pipeline de traitement suit ces étapes rigoureuses :
 ## 📂 Structure du Projet
 
 ```bash
-src
-├── create_tables.py                     # Script d'initialisation de la base de données (SQLAlchemy)
-├── DetectFaces.py                       # Script autonome pour tester la détection (OpenCV + CNN)
-├── haarcascade-frontalface-default.xml  # Modèle OpenCV pour la détection de visages
-├── main.py                              # Application principale (API FastAPI)
-├── MainML.ipynb                         # Notebook Jupyter d'entraînement du modèle
-├── my_model_emotion_detection.keras     # Modèle CNN entraîné et sauvegardé
-├── requirements.txt                     # Liste des librairies (tensorflow, fastapi, opencv...)
-└── test_unitaire.py                     # Tests pour valider le chargement du modèle et l'API
+FACIAL-EMOTION-API/
+├── .github/                             # Reste tel quel (pour tes futures Actions)
+├── Data_Kaggle_Emotional_Detection/     # Reste tel quel (ignoré par Git)
+├── models/                              # 🆕 NOUVEAU : Pour tes poids d'IA
+│   ├── haarcascade-frontalface-default.xml
+│   └── my_model_emotion_detection.keras
+├── notebooks/                           # 🆕 NOUVEAU : Pour ton exploration
+│   └── MainML.ipynb                     
+├── app/                                 # 🔄 TON ANCIEN 'src' (dédié à l'API)
+│   ├── config.py
+│   ├── database.py
+│   ├── models.py
+│   ├── create_tables.py
+│   └── main.py
+├── tests/                               # 🆕 NOUVEAU : Pour tes tests unitaires
+│   └── test_unitaire.py                 
+├── detect_and_predict.py                # 🔄 Ton ancien 'DetectFaces.py' (renommé, à la racine)
+├── fear.jpg                             # (Image de test, tu peux la laisser là ou créer un dossier 'samples')
+├── venv/
+├── .env
+├── .gitignore
+├── Notes.md
+└── README.md
 ```
 
 ---
@@ -155,3 +169,24 @@ pytest test_unitaire.py
 * **Input** : Images 48x48 pixels, Grayscale (1 canal).
 * **Classes (7)** : `Angry`, `Disgusted`, `Fearful`, `Happy`, `Neutral`, `Sad`, `Surprised`.
 * **Performance** : Modèle optimisé pour la rapidité d'inférence (convient au temps réel).
+
+## branchs
+feature/1-cnn-training
+
+Ce que tu y fais : L'étape 1 et 2 du brief. Préparation du dataset, création du notebook, entraînement du modèle TensorFlow/Keras, et sauvegarde du fichier .keras.
+
+feature/2-opencv-detection
+
+Ce que tu y fais : L'étape 3 du brief. Création du script detect_and_predict.py qui charge le Haar Cascade, détecte le visage, et utilise ton modèle CNN pour afficher la prédiction sur l'image.
+
+feature/3-fastapi-postgres
+
+Ce que tu y fais : L'étape 4 du brief. C'est le gros morceau. Création de l'architecture de ton API (app/main.py), connexion à la base de données PostgreSQL via SQLAlchemy, et création des routes /predict_emotion (POST) et /history (GET).
+
+feature/4-tests-and-ci
+
+Ce que tu y fais : L'étape 5 du brief. Rédaction de tes tests unitaires avec Pytest (tests/test_unitaire.py) et création du dossier .github/workflows/ pour tes GitHub Actions.
+
+docs/readme-et-livrables
+
+Ce que tu y fais : La touche finale. Rédaction de ton README.md (documentation), mise au propre de ton requirements.txt et vérification de ton .gitignore.
