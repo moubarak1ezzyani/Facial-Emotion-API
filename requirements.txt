@@ -1,24 +1,23 @@
-# Fichier: requirements.txt
-
-# --- Noyau ML / CV ---
+# --- Core Machine Learning & Computer Vision ---
 tensorflow
 numpy
 opencv-python
+matplotlib
 
-# --- Serveur API (FastAPI) ---
+# --- API Server (FastAPI) ---
 fastapi
-uvicorn[standard]  # Inclut les dépendances standard pour la performance
+uvicorn[standard]
 
-# --- Base de données (SQLAlchemy + Pilotes PostgreSQL) ---
+# --- Database (SQLAlchemy & PostgreSQL Drivers) ---
 SQLAlchemy
-asyncpg          # Le pilote ASYNCHRONE (pour postgresql+asyncpg://)
-psycopg2-binary  # Le pilote SYNCHRONE (pour l'import psycopg2)
+asyncpg          # For asynchronous database operations
+psycopg2-binary  # For synchronous database operations
 
-# --- Tests Unitaires (Pytest) ---
+# --- Unit Testing (Pytest) ---
 pytest
-pytest-asyncio   # Nécessaire pour vos tests 'async def'
-httpx            # Nécessaire pour le 'TestClient' de FastAPI
-aiosqlite        # Nécessaire pour votre BDD de test en mémoire (sqlite+aiosqlite)
+pytest-asyncio
+httpx            # Required for FastAPI TestClient
+aiosqlite        # In-memory testing database
 
-# --- Utilitaires ---
-python-dotenv    # Pour charger votre fichier .env
+# --- Utilities ---
+python-dotenv
