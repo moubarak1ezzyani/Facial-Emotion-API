@@ -45,3 +45,6 @@ db.sqlite3-journal
 # --- Système ---
 .DS_Store
 Thumbs.db
+
+# --- models
+models/
