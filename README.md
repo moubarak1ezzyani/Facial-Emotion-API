@@ -190,3 +190,6 @@ Ce que tu y fais : L'étape 5 du brief. Rédaction de tes tests unitaires avec P
 docs/readme-et-livrables
 
 Ce que tu y fais : La touche finale. Rédaction de ton README.md (documentation), mise au propre de ton requirements.txt et vérification de ton .gitignore.
+
+## 📂 Recommended Naming Convention
+StepFile NamePurpose  `0101_eda_exploration.ipynb` Data visualization, class distribution, and image checks.`0202_cnn_training.ipynb` Model architecture, data augmentation, and training logic.`0303_detection_inference.ipynb` Testing the model on new images and visualizing predictions.

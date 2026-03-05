@@ -44,7 +44,7 @@ db.sqlite3-journal
 
 # --- Système ---
 .DS_Store
-Thumbs.db 
+Thumbs.db
 
-# --- saved models
+# --- models
 models/
