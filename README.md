@@ -28,7 +28,9 @@ FACIAL-EMOTION-API/
 │   ├── haarcascade-frontalface-default.xml
 │   └── my_model_emotion_detection.keras
 ├── notebooks/                           # 🆕 NOUVEAU : Pour ton exploration
-│   └── MainML.ipynb                     
+│   └── eda.ipynb
+|   └── training.ipynb
+|   └── detection_predict.ipynb                         
 ├── app/                                 # 🔄 TON ANCIEN 'src' (dédié à l'API)
 │   ├── config.py
 │   ├── database.py
