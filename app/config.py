@@ -32,4 +32,4 @@ NUM_CLASSES = 7     # (angry, disgust, fear, happy, neutral, sad, surprise)
 EPOCHS = 25
 
 # -> Class Names
-class_names = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
+EMOTIONS = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
