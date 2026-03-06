@@ -1,13 +1,12 @@
 import os
 from dotenv import load_dotenv
-import tensorflow as tf
-import cv2
 
 load_dotenv()
 
-# --- DB
-# URL : postgresql+asyncpg://<user>:<password>@<host>:<port>/<db_name> 
+# --- Dynamically find the project root (FACIAL-EMOTION-API) ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# --- DB Configuration ---
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 DB_HOST = os.getenv("DB_HOST")
@@ -15,23 +14,22 @@ DB_NAME = os.getenv("DB_NAME")
 
 DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 
-# --- Jupyter Cellls
+# --- Jupyter / Data Paths ---
 data_dir = os.getenv("data_notebook_path")
-BATCH_SIZE = 32     # samples : 16, 32, 64, 128
+
+# Note: Using absolute paths based on BASE_DIR prevents "File not found" errors
+TRAIN_DIR = os.path.join(BASE_DIR, "data","Data_Kaggle_Emotional_Detection", "train")
+TEST_DIR = os.path.join(BASE_DIR, "data","Data_Kaggle_Emotional_Detection", "test")
+MODEL_SAVE_PATH = os.path.join(BASE_DIR, "models", "my_model_emotion_detection_2.keras")
+CASCADE_PATH = os.path.join(BASE_DIR, "models", "haarcascade-frontalface-default.xml")
+
+# --- ML Hyperparameters ---
+BATCH_SIZE = 64     # samples : 16, 32, 64, 128
 IMG_HEIGHT = 48     # DATASET size: 48 * 48
 IMG_WIDTH = 48
-IMG_SIZE=(IMG_WIDTH, IMG_HEIGHT)
+IMG_SIZE = (IMG_WIDTH, IMG_HEIGHT)
 NUM_CLASSES = 7     # (angry, disgust, fear, happy, neutral, sad, surprise)
-
-
-
-# -> load model CNN in memory 
-model = tf.keras.models.load_model('my_model_emotion_detection.keras')
-
-
-# -> load model Haar Cascade
-name_xml_file = 'haarcascade-frontalface-default.xml'
-face_cascade = cv2.CascadeClassifier(name_xml_file)
+EPOCHS = 25
 
 # -> Class Names
 class_names = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
