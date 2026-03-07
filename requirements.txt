@@ -21,3 +21,4 @@ aiosqlite        # In-memory testing database
 
 # --- Utilities ---
 python-dotenv
+python-multipart
