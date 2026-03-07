@@ -16,10 +16,22 @@ DB_NAME = (os.getenv("DB_NAME") or "").strip()
 
 DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 
-# --- Paths ---
-# Use absolute paths based on BASE_DIR to prevent "File not found" errors
-MODEL_SAVE_PATH = os.path.join(BASE_DIR, "models", "my_model_emotion_detection.keras")
+# --- Jupyter / Data Paths ---
+data_dir = os.getenv("data_notebook_path")
+
+# Note: Using absolute paths based on BASE_DIR prevents "File not found" errors
+TRAIN_DIR = os.path.join(BASE_DIR, "data","Data_Kaggle_Emotional_Detection", "train")
+TEST_DIR = os.path.join(BASE_DIR, "data","Data_Kaggle_Emotional_Detection", "test")
+MODEL_SAVE_PATH = os.path.join(BASE_DIR, "models", "my_model_emotion_detection_2.keras")
 CASCADE_PATH = os.path.join(BASE_DIR, "models", "haarcascade-frontalface-default.xml")
 
-# --- Class Names ---
-class_names = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
+# --- ML Hyperparameters ---
+BATCH_SIZE = 64     # samples : 16, 32, 64, 128
+IMG_HEIGHT = 48     # DATASET size: 48 * 48
+IMG_WIDTH = 48
+IMG_SIZE = (IMG_WIDTH, IMG_HEIGHT)
+NUM_CLASSES = 7     # (angry, disgust, fear, happy, neutral, sad, surprise)
+EPOCHS = 25
+
+# -> Class Names
+EMOTIONS = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
