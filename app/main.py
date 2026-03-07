@@ -1,99 +1,70 @@
-from typing import Union, Annotated
-from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
-import tensorflow as tf
-import numpy as np
-from tensorflow import keras 
-from tensorflow.keras.models import Sequential
-import cv2
 import os
-from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-import psycopg2
-import datetime
-from config import DB_HOST, DB_PASS, DB_NAME, DB_USER, DB_URL
+import shutil
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# Import your database functions and models (adjust these imports based on your actual files)
+from app.database import get_db_session
+from app.models import PredictionHistory # Assuming you have this defined somewhere
+from app.config import DB_HOST, DB_PASS, DB_NAME, DB_USER, DB_URL
+
+# Import our working ML Service!
+from app.services.detect_predict import analyze_emotion
 
 app = FastAPI()
 
-# Config Engine
+# Config Engine Check
 if not all([DB_USER, DB_PASS, DB_HOST, DB_NAME]):
     print("ERREUR : des variables d'env sont manquantes")
-    exit()      # l'app s'arrete si le chargement des secrets est echoue
-
-
-
-
-
+    exit()
 
 @app.get('/')
 async def read_root():
-    return {"Hello" : "World"}
+    return {"Hello": "World"}
 
-"""@app.get('/item/{item_id}')
-async def read_item(item_id : int, q : Union[str, None] = None):
-    return {"item_id" : item_id, "q" : q}   
-"""
 @app.post('/predict_emotion/')
-async def predict_emotion(file : UploadFile = File(...),db : AsyncSession = Depends(get_db_session)):
-    if not file:
-        return {"Erreur" : "file not sent"}
-    else:
-        file_name = {'filename' : file.filename}
-        print(file_name)
-        contents = await file.read()    # lire les bytes : contenu du fichier | await : (tjrs avec func async)
+async def predict_emotion(file: UploadFile = File(...), db: AsyncSession = Depends(get_db_session)):
+    # 1. Validate file
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail=f"Utilisez JPG ou PNG. '{file.filename}' n'est pas supporté.")
 
-        # --- NumPy + OpenCV ==> image
-        np_arr = np.frombuffer(contents, np.uint8)   # tampon de lecture | u, int, 8 : unsigned, int, 8 bits --> 2^8 = 256 combinaisons (tab 1D)
-        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)    # 0 (noir/ pas de couleurs) --> 255 (blanc) | imdecode() / imread()
+    # 2. Save the uploaded file temporarily to disk
+    temp_file_path = f"temp_{file.filename}"
+    with open(temp_file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
-        # --- Exception : Seules (.jpg) ou (.png) qui seront supportees
-        if image is None:
-            raise HTTPException(
-                status_code=400,    # bad request
-                detail=f"Utilisez JPG ou PNG '{file.filename.split('.')[-1]}' n'est pas supporté."
-            )
+    try:
+        # 3. Use the working service to do all the heavy AI lifting
+        # This automatically handles normalization, multiple faces, and model loading!
+        result = analyze_emotion(temp_file_path)
 
-        # Detection Visage 
-        # --- Haar Cascade : image --> niveaux de gris
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        print(gray_image)
-        faces = face_cascade.detectMultiScale(gray_image, 1.1, 5) # Lancement Detecteur | 1.1, 5: reduction 10%, 5 confirmations de MinNeighbors
-
-        if len(faces) == 0:
-            return {"erreur" : "Aucun visage detecte"}
+        if result["status"] == "error":
+            return {"erreur": result["message"]}
         
-        # Preparation Visage --> CNN
-        # --- Crop / Recadrer
-        (x, y, w, h) = faces[0]      # 1er visage trouve (meme pour 3 visages )
-        face_roi = gray_image[y:y+h, x:x+w]
+        if len(result["faces"]) == 0:
+            return {"erreur": "Aucun visage detecte"}
 
-        # --- Redimensionner
-        resized_face = cv2.resize(face_roi, (48,48))    # l'entrainement en CNN etait en 48x48
-
-        # --- Reshape + Scaling : (1,48,48,1) = (batch,height,width,canals)
-        processed_face = np.expand_dims(resized_face, axis = -1)    # (48,48) --> (48,48,1)
-        processed_face = np.expand_dims(processed_face, axis = 0)   # (48,48,1) --> (1,48,48,1)
-
-        # --- Prediction
-        prediction = model.predict(processed_face)  # Résultat estimé selon classes: [[0.05, 0.1, 0.02, 0.7, 0.03, 0.05, 0.05]]
+        # 4. Save the FIRST detected face to the database (to match your original logic)
+        first_face = result["faces"][0]
         
-        # --- Extraction de donnees 
-        score =  float(np.max(prediction))
-        emotion_index = int(np.argmax(prediction))                  
-        emotion_label = class_names[emotion_index]
-
-        # => Retour DB :
-        # -- Objet Python
         nouvelle_prediction = PredictionHistory(
-            filename = file.filename,
-            emotion = emotion_label,
-            score = score
+            filename=file.filename,
+            emotion=first_face["emotion"],
+            score=first_face["confidence"]
         )
-        db.add(nouvelle_prediction)     # Ajouter à la DB
+        db.add(nouvelle_prediction)
+        await db.commit()
+        await db.refresh(nouvelle_prediction)
 
-        await db.commit()       # Sauvegarder dans la DB
-
-        await db.refresh(nouvelle_prediction)    # avoir l'ID créé
-
-        # --- json File
-        return {"emotion" : emotion_label, "score" : score, "saved_id" : nouvelle_prediction.id}
-    
+        # 5. Return JSON to user
+        return {
+            "emotion": first_face["emotion"], 
+            "score": first_face["confidence"], 
+            "saved_id": nouvelle_prediction.id,
+            "all_faces_detected": result["faces"] # Bonus: Give them the bounding boxes too!
+        }
+        
+    finally:
+        # 6. Always clean up the temp image
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
