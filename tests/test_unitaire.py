@@ -2,7 +2,7 @@ import pytest
 import tensorflow as tf
 import numpy as np
 import os
-from main import model 
+from app.services.detect_predict import emotion_model as model 
 
 def test_model_save_and_load():
     """
@@ -34,7 +34,7 @@ def test_prediction_format():
     
     # 2. Agir (Act)
     # Exécute la prédiction
-    prediction = model.predict(dummy_input)
+    prediction = model.predict(dummy_input, verbose=0)
     
     # 3. Vérifier (Assert)
     # Vérifie que la sortie est bien un array Numpy
