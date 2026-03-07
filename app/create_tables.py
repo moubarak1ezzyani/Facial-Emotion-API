@@ -1,6 +1,6 @@
 import asyncio
 from dotenv import load_dotenv
-from database import Base, engine 
+from app.database import Base, engine 
 
 async def init_db():
     print("Connexion à la base de données...")

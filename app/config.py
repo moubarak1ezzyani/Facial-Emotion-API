@@ -1,26 +1,25 @@
 import os
 from dotenv import load_dotenv
-import tensorflow as tf
-import cv2
 
-# --- URL : postgresql+asyncpg://<user>:<password>@<host>:<port>/<db_name> 
-load_dotenv()
+# --- Dynamically find the project root (FACIAL-EMOTION-API) ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
+# Load .env from project root
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
+
+# --- DB Configuration ---
+DB_USER = (os.getenv("DB_USER") or "").strip()
+DB_PASS = (os.getenv("DB_PASS") or "").strip()
+DB_HOST = (os.getenv("DB_HOST") or "").strip()
+DB_NAME = (os.getenv("DB_NAME") or "").strip()
 
 DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 
-# --- load model CNN in memory 
-model = tf.keras.models.load_model('my_model_emotion_detection.keras')
-# tf_enable_onednn_opts=0
-# TF_ENABLE_ONEDNN_OPTS = 0
+# --- Paths ---
+# Use absolute paths based on BASE_DIR to prevent "File not found" errors
+MODEL_SAVE_PATH = os.path.join(BASE_DIR, "models", "my_model_emotion_detection.keras")
+CASCADE_PATH = os.path.join(BASE_DIR, "models", "haarcascade-frontalface-default.xml")
 
-# --- load model Haar Cascade
-name_xml_file = 'haarcascade-frontalface-default.xml'
-face_cascade = cv2.CascadeClassifier(name_xml_file)
-
-# --- Class Names
+# --- Class Names ---
 class_names = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
