@@ -4,24 +4,24 @@ import numpy as np
 import os
 from app.services.detect_predict import emotion_model as model 
 
-def test_model_save_and_load():
+def test_model_save_and_load(tmp_path):
     """
     Vérifie que le modèle peut être sauvegardé et rechargé sans erreur.
     """
     # --- Préparer (Arrange)
-    # chemin temporaire : fichier de test
-    temp_model_path = "my_model_emotion_detection.keras"
+    # tmp_path est un outil magique de Pytest qui crée un dossier temporaire
+    # et le supprime automatiquement à la fin du test !
+    temp_model_path = tmp_path / "test_model.keras"
     
     # --- Action
-    model.save(temp_model_path)     # Sauvegarde le modèle et le recharge immédiatement
+    model.save(temp_model_path)
     loaded_model = tf.keras.models.load_model(temp_model_path)
     
-    # --- assert
-    assert os.path.exists(temp_model_path)      # Verfication : le fichier a bien ete cree
-    assert loaded_model is not None         # Verificcation : le mdoele rechargé n'est pas vide
+    # --- Vérifier (Assert)
+    assert temp_model_path.exists()      # Vérifie que le fichier a bien été créé
+    assert loaded_model is not None      # Vérifie que le modèle rechargé n'est pas vide
     
- 
-    os.remove(temp_model_path)         # Cleaning
+    # Plus besoin de os.remove() ! Pytest nettoie tout seul.
 
 def test_prediction_format():
     """
@@ -29,17 +29,12 @@ def test_prediction_format():
     """
     # 1. Préparer (Arrange)
     # Crée une fausse image (1 lot, 48x48 pixels, 1 canal gris)
-    # C'est la forme que votre modèle attend en entrée.
-    dummy_input = np.ones((1, 48, 48, 1))
+    # On utilise random.rand pour simuler des pixels normalisés (entre 0 et 1)
+    dummy_input = np.random.rand(1, 48, 48, 1)
     
     # 2. Agir (Act)
-    # Exécute la prédiction
     prediction = model.predict(dummy_input, verbose=0)
     
     # 3. Vérifier (Assert)
-    # Vérifie que la sortie est bien un array Numpy
     assert isinstance(prediction, np.ndarray)
-    
-    # Vérifie que la forme est (1, 7) :
-    # 1 image dans le lot, 7 classes (émotions) en sortie.
-    assert prediction.shape == (1, 7)
+    assert prediction.shape == (1, 7)    # 1 image, 7 émotions possibles
