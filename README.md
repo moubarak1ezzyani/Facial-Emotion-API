@@ -39,7 +39,7 @@ FACIAL-EMOTION-API/
 │   └── main.py
 ├── tests/                               # 🆕 NOUVEAU : Pour tes tests unitaires
 │   └── test_unitaire.py                 
-├── detect_and_predict.py                # 🔄 Ton ancien 'DetectFaces.py' (renommé, à la racine)
+├── detect_and_predict.py                # 🔄 Script autonome pour la détection et visualisation
 ├── fear.jpg                             # (Image de test, tu peux la laisser là ou créer un dossier 'samples')
 ├── venv/
 ├── .env
@@ -108,7 +108,7 @@ L'API sera accessible sur : `http://127.0.0.1:8000`
 Si vous souhaitez tester la détection et la prédiction sur une image locale sans passer par le serveur :
 
 ```bash
-python DetectFaces.py
+python detect_and_predict.py
 
 ```
 
@@ -167,7 +167,7 @@ pytest test_unitaire.py
 
 ## 🧠 Détails du Modèle (CNN)
 
-* **Entraînement** : Notebook `MainML.ipynb`.
+* **Entraînement** : Notebook `notebooks/training.ipynb`.
 * **Input** : Images 48x48 pixels, Grayscale (1 canal).
 * **Classes (7)** : `Angry`, `Disgusted`, `Fearful`, `Happy`, `Neutral`, `Sad`, `Surprised`.
 * **Performance** : Modèle optimisé pour la rapidité d'inférence (convient au temps réel).
