@@ -169,7 +169,4 @@ pytest tests/test_unitaire.py
 * `test_model_save_and_load`: Verifies the integrity of saving and loading the `.keras` model.
 * `test_prediction_format`: Ensures the CNN output correctly returns a tensor with the shape `(1, 7)`.
 
-```
-
-```
 
