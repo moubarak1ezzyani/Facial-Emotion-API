@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime
-from database import Base
+from app.database import Base
 
 class PredictionHistory(Base):
     __tablename__ = "EmotionTable"
