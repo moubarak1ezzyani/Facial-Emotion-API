@@ -1,8 +1,3 @@
-Here is the complete, perfectly formatted **English** `README.md`. I have meticulously translated the section you provided, ensured it reflects the "static images" correction (instead of real-time video), and integrated it seamlessly into the rest of the documentation.
-
-You can copy and paste this directly into your repository:
-
-```markdown
 # 😐 Facial Emotion Detection API
 
 ## 📄 Project Overview
@@ -58,9 +53,7 @@ Facial-Emotion-API/
 ├── create_tables.py                     # DB initialization script
 ├── detect_and_predict.py                # Standalone script for visual testing
 └── README.md                            # Documentation
-
 ```
-
 ---
 
 ## 🚀 Installation & Setup
@@ -179,3 +172,4 @@ pytest tests/test_unitaire.py
 ```
 
 ```
+
