@@ -2,10 +2,11 @@ import os
 import shutil
 from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select 
 
-# Import your database functions and models (adjust these imports based on your actual files)
+# Import your database functions and models
 from app.database import get_db_session
-from app.models import PredictionHistory # Assuming you have this defined somewhere
+from app.models import PredictionHistory 
 from app.config import DB_HOST, DB_PASS, DB_NAME, DB_USER, DB_URL
 
 # Import our working ML Service!
@@ -22,6 +23,18 @@ if not all([DB_USER, DB_PASS, DB_HOST, DB_NAME]):
 async def read_root():
     return {"Hello": "World"}
 
+# --- NEW ROUTE : GET HISTORY ---
+@app.get('/history/')
+async def get_history(db: AsyncSession = Depends(get_db_session)):
+    """
+    Récupère l'historique complet des prédictions depuis PostgreSQL.
+    """
+    # Récupère toutes les prédictions, triées par date (les plus récentes en premier)
+    result = await db.execute(select(PredictionHistory).order_by(PredictionHistory.created_at.desc()))
+    history = result.scalars().all()
+    return history
+
+# --- UPDATED ROUTE : POST PREDICTION ---
 @app.post('/predict_emotion/')
 async def predict_emotion(file: UploadFile = File(...), db: AsyncSession = Depends(get_db_session)):
     # 1. Validate file
@@ -35,7 +48,6 @@ async def predict_emotion(file: UploadFile = File(...), db: AsyncSession = Depen
 
     try:
         # 3. Use the working service to do all the heavy AI lifting
-        # This automatically handles normalization, multiple faces, and model loading!
         result = analyze_emotion(temp_file_path)
 
         if result["status"] == "error":
@@ -44,13 +56,13 @@ async def predict_emotion(file: UploadFile = File(...), db: AsyncSession = Depen
         if len(result["faces"]) == 0:
             return {"erreur": "Aucun visage detecte"}
 
-        # 4. Save the FIRST detected face to the database (to match your original logic)
+        # 4. Save the FIRST detected face to the database
         first_face = result["faces"][0]
         
         nouvelle_prediction = PredictionHistory(
             filename=file.filename,
             emotion=first_face["emotion"],
-            score=first_face["confidence"]
+            confidence=first_face["confidence"] # <-- UPDATED: Changed 'score' to 'confidence'
         )
         db.add(nouvelle_prediction)
         await db.commit()
@@ -59,9 +71,9 @@ async def predict_emotion(file: UploadFile = File(...), db: AsyncSession = Depen
         # 5. Return JSON to user
         return {
             "emotion": first_face["emotion"], 
-            "score": first_face["confidence"], 
+            "confidence": first_face["confidence"], # <-- UPDATED: Changed 'score' to 'confidence'
             "saved_id": nouvelle_prediction.id,
-            "all_faces_detected": result["faces"] # Bonus: Give them the bounding boxes too!
+            "all_faces_detected": result["faces"]
         }
         
     finally:
