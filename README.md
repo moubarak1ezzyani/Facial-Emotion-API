@@ -1,75 +1,81 @@
-# 😐 Facial Emotion API
+# 😐 Facial Emotion Detection API
 
-## 📄 Contexte du Projet
+## 📄 Project Overview
+This project is a prototype REST API developed for a UX analysis startup. It combines **Computer Vision** and **Deep Learning** to analyze facial emotions on static images and store the results for statistical studies. 
 
-Ce projet est un prototype d'API REST développé pour une startup d'analyse UX. Il combine **Vision par Ordinateur** et **Deep Learning** pour analyser les émotions faciales en temps réel et stocker les résultats pour des études statistiques.
-
-L'application expose une API performante (FastAPI asynchrone) capable de détecter un visage, classifier son émotion parmi 7 catégories (*Happy, Sad, Angry, Surprise, Neutral, Fear, Disgusted*) et archiver la donnée.
-
-## ⚙️ Architecture Technique
-
-Le pipeline de traitement suit ces étapes rigoureuses :
-
-1. **Réception** : L'API reçoit une image via l'endpoint `/predict_emotion`.
-2. **Détection (OpenCV)** : Le classifieur *Haar Cascade* isole le visage.
-3. **Normalisation** : Recadrage, conversion en niveaux de gris, redimensionnement (48x48px) et mise à l'échelle [0-1].
-4. **Inférence (CNN)** : Le modèle TensorFlow (`.keras`) prédit l'émotion et le score de confiance.
-5. **Persistance (SQLAlchemy Async)** : Enregistrement non-bloquant dans PostgreSQL.
+The application exposes a high-performance, asynchronous FastAPI server capable of detecting a face in an uploaded image, classifying its emotion into one of 7 categories (*Happy, Sad, Angry, Surprise, Neutral, Fear, Disgusted*), and archiving the data.
 
 ---
 
-## 📂 Structure du Projet
+## ⚙️ Technical Architecture & Pipeline
+
+
+[Image of Convolutional Neural Network architecture]
+
+
+The data processing pipeline follows these rigorous steps:
+1. **Reception**: The API receives an image via the `/predict_emotion` endpoint.
+2. **Detection (OpenCV)**: A *Haar Cascade* classifier isolates the face within the image.
+3. **Normalization**: The face is cropped, converted to grayscale, resized to 48x48 pixels, and scaled to a [0-1] range.
+4. **Inference (CNN)**: A TensorFlow (`.keras`) model predicts the emotion and assigns a confidence score.
+5. **Persistence (SQLAlchemy Async)**: A non-blocking save is executed into a PostgreSQL database.
+
+---
+
+## 📂 Repository Structure
 
 ```bash
-FACIAL-EMOTION-API/
-├── .github/                             # Reste tel quel (pour tes futures Actions)
-├── Data_Kaggle_Emotional_Detection/     # Reste tel quel (ignoré par Git)
-├── models/                              # 🆕 NOUVEAU : Pour tes poids d'IA
-│   ├── haarcascade-frontalface-default.xml
-│   └── my_model_emotion_detection.keras
-├── notebooks/                           # 🆕 NOUVEAU : Pour ton exploration
-│   └── eda.ipynb
-|   └── training.ipynb
-|   └── detection_predict.ipynb                         
-├── app/                                 # 🔄 TON ANCIEN 'src' (dédié à l'API)
-│   ├── config.py
-│   ├── database.py
-│   ├── models.py
-│   ├── create_tables.py
-│   └── main.py
-├── tests/                               # 🆕 NOUVEAU : Pour tes tests unitaires
-│   └── test_unitaire.py                 
-├── detect_and_predict.py                # 🔄 Script autonome pour la détection et visualisation
-├── fear.jpg                             # (Image de test, tu peux la laisser là ou créer un dossier 'samples')
-├── venv/
-├── .env
-├── .gitignore
-├── Notes.md
-└── README.md
+Facial-Emotion-API/
+├── .github/
+│   └── workflows/
+│       └── python-ci.yml                # CI/CD automated testing pipeline
+├── app/                                 
+│   └── services/                        # Core API and ML Logic
+│       ├── detect_predict.py            # AI inference service
+│       ├── config.py                    # Environment variables mapping
+│       ├── database.py                  # Async SQLAlchemy engine
+│       ├── main.py                      # FastAPI application and routes
+│       └── models.py                    # PostgreSQL table schemas
+├── data/
+│   ├── Data_Kaggle_Emotional_Detection/ # Original dataset
+│   └── samples/                         # Test images for each emotion
+├── models/
+│   ├── haarcascade-frontalface-default.xml # Face detection weights
+│   ├── my_model_emotion_detection_1.keras  # CNN Model Version 1
+│   └── my_model_emotion_detection_2.keras  # CNN Model Version 2
+├── notebooks/                           # Jupyter notebooks for EDA
+├── output/                              # Generated visualizations
+├── scripts/
+│   └── training.py                      # CNN Training script
+├── tests/
+│   └── test_unitaire.py                 # Pytest suite
+├── .env                                 # Environment credentials (ignored by Git)
+├── create_tables.py                     # DB initialization script
+├── detect_and_predict.py                # Standalone script for visual testing
+└── README.md                            # Documentation
 ```
-
 ---
 
-## 🚀 Installation et Configuration
+## 🚀 Installation & Setup
 
-### 1. Pré-requis
+### 1. Prerequisites
 
 * Python 3.9+
-* PostgreSQL installé et service actif.
+* PostgreSQL installed and running locally.
 
-### 2. Installation
+### 2. Clone and Install
 
-Cloner le dépôt et installer les librairies :
+Clone the repository and install the required Python libraries:
 
 ```bash
-git clone https://github.com/votre-user/Facial-Emotion-API.git
+git clone [https://github.com/votre-user/Facial-Emotion-API.git](https://github.com/votre-user/Facial-Emotion-API.git)
 pip install -r requirements.txt
 
 ```
 
-### 3. Configuration de la Base de Données
+### 3. Database Configuration
 
-Créez un fichier `.env` à la racine du projet pour vos variables d'environnement (sécurité) :
+Create a `.env` file at the root of the project to securely store your credentials:
 
 ```env
 DB_USER=postgres
@@ -79,60 +85,60 @@ DB_NAME=emotion_db
 
 ```
 
-Initialisez les tables dans la base de données avec le script dédié :
+Initialize the tables in your PostgreSQL database by running the setup script from the root folder:
 
 ```bash
 python create_tables.py
 
 ```
 
-*(Cela créera la table `EmotionTable` via SQLAlchemy).*
+*(This automatically creates the `EmotionTable` via SQLAlchemy).*
 
 ---
 
-## 💻 Utilisation
+## 💻 Usage
 
-### Lancer l'API (Serveur)
+### Run the API Server
 
-Démarrer le serveur Uvicorn avec rechargement automatique :
+Start the Uvicorn server with auto-reload enabled (adjust path based on your exact `main.py` location):
 
 ```bash
-uvicorn main:app --reload
+uvicorn app.services.main:app --reload 
 
 ```
 
-L'API sera accessible sur : `http://127.0.0.1:8000`
+The API will be accessible at: `http://127.0.0.1:8000`
 
-### Tester avec le script autonome
+### Run the Standalone Script
 
-Si vous souhaitez tester la détection et la prédiction sur une image locale sans passer par le serveur :
+To test the detection and prediction visually on a local image from the `data/samples/` folder without starting the server:
 
 ```bash
 python detect_and_predict.py
 
 ```
 
-*(Assurez-vous de modifier le chemin `image_path` dans le fichier avant).*
+*(Ensure you modify the `image_path` variable inside the script before running).*
 
 ---
 
-## 📡 Documentation des Endpoints
+## 📡 API Endpoints
 
-Une documentation interactive (Swagger UI) est disponible automatiquement sur `http://127.0.0.1:8000/docs`.
+Interactive Swagger UI documentation is automatically available at `http://127.0.0.1:8000/docs`.
 
 ### 1️⃣ `POST /predict_emotion`
 
-Analyse une image envoyée par l'utilisateur.
+Analyzes an uploaded image.
 
-* **Input** : Fichier image (`UploadFile`).
-* **Processus** : Détection -> Prédiction -> Sauvegarde DB.
-* **Output (JSON)** :
+* **Input**: Image file (`UploadFile`).
+* **Process**: Detection -> Prediction -> DB Save.
+* **Output Example (JSON)**:
 ```json
 {
-  "face_detected": true,
   "emotion": "happy",
-  "confidence": 0.98,
-  "processing_time": "0.04s"
+  "confidence": 98.5,
+  "saved_id": 1,
+  "all_faces_detected": [...]
 }
 
 ```
@@ -141,57 +147,26 @@ Analyse une image envoyée par l'utilisateur.
 
 ### 2️⃣ `GET /history`
 
-Récupère l'historique des analyses stockées en base.
+Retrieves the history of all analyzed images stored in the database.
 
-* **Output** : Liste des entrées (ID, Emotion, Confiance, Date).
+* **Output**: List of entries including ID, File Name, Emotion, Confidence score, and Date created.
 
 ---
 
-## ✅ Qualité du Code & Tests
+## ✅ Testing & Quality Assurance
 
-Le projet intègre des tests unitaires pour garantir la robustesse du modèle.
+This project includes automated unit tests via **Pytest** and continuous integration via **GitHub Actions** (`python-ci.yml`) to ensure the robustness of the ML pipeline.
 
-**Exécuter les tests :**
+Run the test suite manually:
 
 ```bash
-pytest test_unitaire.py
+pytest tests/test_unitaire.py
 
 ```
 
-**Couverture des tests :**
+**Test Coverage Includes:**
 
-* `test_model_save_and_load` : Vérifie l'intégrité de la sauvegarde/chargement du modèle `.keras`.
-* `test_prediction_format` : Vérifie que le modèle renvoie bien un tenseur de forme `(1, 7)`.
+* `test_model_save_and_load`: Verifies the integrity of saving and loading the `.keras` model.
+* `test_prediction_format`: Ensures the CNN output correctly returns a tensor with the shape `(1, 7)`.
 
----
 
-## 🧠 Détails du Modèle (CNN)
-
-* **Entraînement** : Notebook `notebooks/training.ipynb`.
-* **Input** : Images 48x48 pixels, Grayscale (1 canal).
-* **Classes (7)** : `Angry`, `Disgusted`, `Fearful`, `Happy`, `Neutral`, `Sad`, `Surprised`.
-* **Performance** : Modèle optimisé pour la rapidité d'inférence (convient au temps réel).
-
-## branchs
-feature/1-cnn-training
-
-Ce que tu y fais : L'étape 1 et 2 du brief. Préparation du dataset, création du notebook, entraînement du modèle TensorFlow/Keras, et sauvegarde du fichier .keras.
-
-feature/2-opencv-detection
-
-Ce que tu y fais : L'étape 3 du brief. Création du script detect_and_predict.py qui charge le Haar Cascade, détecte le visage, et utilise ton modèle CNN pour afficher la prédiction sur l'image.
-
-feature/3-fastapi-postgres
-
-Ce que tu y fais : L'étape 4 du brief. C'est le gros morceau. Création de l'architecture de ton API (app/main.py), connexion à la base de données PostgreSQL via SQLAlchemy, et création des routes /predict_emotion (POST) et /history (GET).
-
-feature/4-tests-and-ci
-
-Ce que tu y fais : L'étape 5 du brief. Rédaction de tes tests unitaires avec Pytest (tests/test_unitaire.py) et création du dossier .github/workflows/ pour tes GitHub Actions.
-
-docs/readme-et-livrables
-
-Ce que tu y fais : La touche finale. Rédaction de ton README.md (documentation), mise au propre de ton requirements.txt et vérification de ton .gitignore.
-
-## 📂 Recommended Naming Convention
-StepFile NamePurpose  `0101_eda_exploration.ipynb` Data visualization, class distribution, and image checks.`0202_cnn_training.ipynb` Model architecture, data augmentation, and training logic.`0303_detection_inference.ipynb` Testing the model on new images and visualizing predictions.
